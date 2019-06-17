@@ -80,5 +80,6 @@ int device::get_hwinfo(char *eth,unsigned char *mac)
     }
     printf("ARPTYPE %d\n%s\n", ifr.ifr_hwaddr.sa_family,ifr.ifr_hwaddr.sa_data);
     memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
+
     return ifr.ifr_hwaddr.sa_family;
 }
