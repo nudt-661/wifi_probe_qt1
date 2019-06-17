@@ -30,6 +30,8 @@ bool device::set_promisc_mode(const char*eth,bool promisc){
         printf("%s is not up yet.\n", eth);
                 return false;
     }
+
+
     if (promisc)
         ifreq.ifr_flags |= IFF_PROMISC;
     else
