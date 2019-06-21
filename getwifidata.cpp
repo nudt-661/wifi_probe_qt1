@@ -16,6 +16,7 @@ getWifiData::getWifiData(QList<macList::mac_list> *mlist,QList<wifiList::wifi_li
     this->mlist=mlist;
     this->wlist=wlist;
     flag=false;
+    //this->trafficIndex=0;
     //sniff80211 s;
 
 }
@@ -23,6 +24,7 @@ void getWifiData::doChange()
 {
     emit change();
 }
+
 void getWifiData::run()
 {
 
@@ -34,13 +36,9 @@ void getWifiData::run()
     sniff80211 s;
     connect(&s,&sniff80211::datachanged,this,&getWifiData::doChange);
     fd=d.init_socket(dev);
-    //d.get_hwinfo(dev,mac);
-    //int i=0;
-    //for(i=0;i<10;i++)
     while(!flag)
         s.recieve_packet(fd,(this->wlist),(this->mlist));
-    //macList::mac_list m;
-  // m=mlist.first();
+
     qDebug()<<"++++++++++++++++++++++++++++++++";
     /*if(!this->mlist->isEmpty())
         qDebug()<<this->mlist->first().devmac<<this->mlist->first().ap;

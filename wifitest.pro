@@ -44,4 +44,8 @@ HEADERS  += widget.h \
     getwifidata.h \
     getMacOrg.h
 
-FORMS    += widget.ui
+FORMS    += widget.ui \
+    widget.ui
+
+DISTFILES += \
+    mac_org2.log

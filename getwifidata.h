@@ -2,6 +2,7 @@
 #define GETWIFIDATA_H
 
 #include <QThread>
+#include <QObject>
 #include "getwifidata.h"
 #include "wifilist.h"
 #include "maclist.h"
@@ -26,6 +27,9 @@ public slots:
     void doChange();
 private:
     bool flag;
+    int timerHandler;
+    //int trafficIndex;
+
 };
 
 #endif // GETWIFIDATA_H

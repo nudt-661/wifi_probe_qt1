@@ -18,8 +18,12 @@ sniff80211::sniff80211(QWidget *parent) : QWidget(parent)
 
 }
 
-void sniff80211::mac2str(char szMac[32],unsigned char* pMac,const char chKen)
+void sniff80211::mac2str(char szMac[32],unsigned char *pMac,const char chKen)
 {
+    if(pMac==NULL)
+    {
+        exit(-1);
+    }
     char szFormat[]="%02X:%02X:%02X:%02X:%02X:%02X\0";
     int nLen =strlen(szFormat);
     if(chKen != ':')
@@ -130,7 +134,6 @@ int sniff80211::parse_radiotap(const char* radiotap_buf)
 
 int sniff80211::recieve_packet(int socket,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist)
 {
-    //qDebug()<<"---------1----------";
     int ret=0;
     struct timeval tv;
     static fd_set read_fds;
@@ -138,11 +141,8 @@ int sniff80211::recieve_packet(int socket,QList<wifiList::wifi_list> *wlist,QLis
 #define BUFFER_SIZE 65535
     tv.tv_sec = 10;
     tv.tv_usec = 100;
-    //qDebug()<<"---------2----------";
     FD_ZERO(&read_fds);
-    //qDebug()<<"---------3----------";
     FD_SET(socket,&read_fds);
-    //qDebug()<<"---------4----------";
     ret = select(socket+1,&read_fds,NULL,NULL,&tv);
     //qDebug()<<ret<<"      "<<socket;
     if(ret == -1 && errno ==EINTR)
@@ -166,12 +166,12 @@ int sniff80211::recieve_packet(int socket,QList<wifiList::wifi_list> *wlist,QLis
             return -1;
         }
         //qDebug()<<"-------------------";
-        parse_packet_wlan(buffer,wlist,mlist);
+        parse_packet_wlan(buffer,wlist,mlist,ret);
     }
     return 0;
 
 }
-int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist )
+int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist,int pktlen)
 {
     //qDebug()<<"parse packet";
 //    int hdrlen = 0;
@@ -198,8 +198,10 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
     int fromDS = (fc & 0x200)>>9;
     if(type == 0x02)//data frame
     {
+
         if(stype == 0x00)//data
         {
+            //qDebug()<<"##################################";
             if( toDS == 0 && fromDS == 0 )//ibss
             {
                 ra = wh->addr1;
@@ -207,22 +209,40 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 bssid = wh->addr3;
                 macList::mac_list tmp;
                 char mac[32];
-
                 mac2str(mac,ta,':');
+                strcpy(tmp.devmac,mac);
+                mac2str(mac,bssid,':');
+                strcpy(tmp.ap,mac);
+		//memset(tmp.time,'\0',60);
+                //tmp.traffic[0]=len;
+                //tmp.time[0]="\0";
+                //tmp.macTraffic-=NULL;
                 macList m;
-                if(!m.searchMacKey(mlist,mac))
+                //int traffic=0;
+                int traffic_index=0;
+                int index=m.searchMacKey(mlist,tmp.devmac,tmp.ap,tmp.traffic,&traffic_index);//search key in list,-1 :key is not in list,0-n:key is in list
+		
+                if(index==-1)
                 {
-                    strcpy(tmp.devmac,mac);
-                    mac2str(mac,bssid,':');
+                    //qDebug()<<"ibss.................................";
+                    //m.addTraffic(tmp.macTraffic,len,"",60,0);
+                    //qDebug() << "add  ibss maclist"<<tmp.ap <<tmp.devmac<<tmp.traffic;
+                    memset(tmp.traffic,0,60);
+                    tmp.traffic[0]=pktlen;
 
-                    //m.searchMacKey(mlist,mac);
-                    strcpy(tmp.ap,mac);
-
-                    qDebug() << "add  ibss maclist"<<tmp.ap <<tmp.devmac;
-                    //qDebug() <<"--------------------";
+                    tmp.index=0;
                     mlist->append(tmp);
                     //qDebug() <<"--------------------";
                     //emit datachanged();
+                }
+                else
+                {
+                    //qDebug()<<"change ibss maclist........."<<"device mac:"<<tmp.devmac<<" "<<"ap:"<<tmp.ap<<"traffic_index"<<traffic_index;
+                    //qDebug()<<"traffic:"<<tmp.traffic[traffic_index]+pktlen;
+                    tmp.traffic[traffic_index]=tmp.traffic[traffic_index]+pktlen;
+                    //m.changeTrafficData(tmp.macTraffic,traffic,"",60,0);
+                    mlist->replace(index,tmp);
+                    //qDebug() <<"---------------------";
                 }
 
             }
@@ -233,21 +253,39 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 ra = wh->addr3;
                 macList::mac_list tmp;
                 char mac[32];
-
                 mac2str(mac,ta,':');
+                strcpy(tmp.devmac,mac);
+                mac2str(mac,bssid,':');
+                strcpy(tmp.ap,mac);
+                //memset(tmp.time,'\0',60);
+                //tmp.time[0]="\0";
+                //tmp.traffic[0]=len;
+                //tmp.macTraffic=NULL;
+                //int traffic=0;
                 macList m;
-                if(!m.searchMacKey(mlist,mac))
+                int traffic_index=0;
+                int index=m.searchMacKey(mlist,tmp.devmac,tmp.ap,tmp.traffic,&traffic_index);
+                if(index==-1)//didn't find mac
                 {
-                    strcpy(tmp.devmac,mac);
-                    mac2str(mac,bssid,':');
+                    memset(tmp.traffic,0,60);
+                    tmp.traffic[0]=pktlen;
 
-                    //m.searchMacKey(mlist,mac);
-                    strcpy(tmp.ap,mac);
-                    qDebug() << "add to ap maclist"<<tmp.ap <<tmp.devmac;
-                    //qDebug() <<"--------------------";
+                    tmp.index=0;
+                    //qDebug()<<"tp ap..................................";
+                    //m.addTraffic(tmp.macTraffic,len,"",60,0);
+                    //qDebug() << "add to ap maclist"<<tmp.ap <<tmp.devmac;
                     mlist->append(tmp);
                     //qDebug() <<"--------------------";
                     //emit datachanged();
+                }
+                else
+                {
+                    //qDebug()<<"change to ap maclist........."<<"device mac:"<<tmp.devmac<<" "<<"ap:"<<tmp.ap<<"traffic_index"<<traffic_index;
+                    //qDebug()<<"traffic:"<<tmp.traffic[traffic_index]+pktlen;
+                    tmp.traffic[traffic_index]=tmp.traffic[traffic_index]+pktlen;
+                    //m.changeTrafficData(tmp.macTraffic,traffic,"",60,0);
+                    mlist->replace(index,tmp);
+                    qDebug() <<"---------------------";
                 }
 
             }
@@ -260,19 +298,38 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 char mac[32];
 
                 mac2str(mac,ta,':');
+                strcpy(tmp.devmac,mac);
+                mac2str(mac,bssid,':');
+                strcpy(tmp.ap,mac);
+                //tmp.traffic[0]=len;
+                //memset(tmp.time,'\0',60);
+                //tmp.time[0]="\0";
+                //tmp.macTraffic=NULL;
                 macList m;
-                if(!m.searchMacKey(mlist,mac))
+                int traffic_index=0;
+                //int *traffic=0;
+                int index=m.searchMacKey(mlist,tmp.devmac,tmp.ap,tmp.traffic,&traffic_index);
+                if(index==-1)
                 {
-                    strcpy(tmp.devmac,mac);
-                    mac2str(mac,bssid,':');
+                    memset(tmp.traffic,0,60);
+                    tmp.traffic[0]=pktlen;
 
-                    //m.searchMacKey(mlist,mac);
-                    strcpy(tmp.ap,mac);
-                    qDebug() << "add from ap maclist"<<tmp.ap <<tmp.devmac;
-                    //qDebug() <<"--------------------";
+                    tmp.index=0;
+                    //qDebug()<<"from ap....................";
+                    //m.addTraffic(tmp.macTraffic,len,"",60,0);
+                    //qDebug() << "add from ap maclist"<<tmp.ap <<tmp.devmac<<pktlen;
                     mlist->append(tmp);
                     //qDebug() <<"--------------------";
                     //emit datachanged();
+                }
+                else
+                {
+                    //qDebug()<<"change from ap maclist........."<<"device mac:"<<tmp.devmac<<" "<<"ap:"<<tmp.ap<<"traffic_index"<<traffic_index;
+                    //qDebug()<<"traffic:"<<tmp.traffic[traffic_index]+pktlen;
+                    tmp.traffic[traffic_index]=tmp.traffic[traffic_index]+pktlen;
+                    //m.changeTrafficData(tmp.macTraffic,traffic,"",60,0);
+                    mlist->replace(index,tmp);
+                    //qDebug() <<"---------------------";
                 }
 
             }
@@ -283,30 +340,8 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
 
         }
         else if(stype == 0x08) //qos data
-        {
-            ra = wh->addr1;
-            ta = wh->addr2;
-            bssid = wh->addr3;
-            macList::mac_list tmp;
-            char mac[32];
-
-            mac2str(mac,ta,':');
-            macList m;
-            if(!m.searchMacKey(mlist,mac))
-            {
-                strcpy(tmp.devmac,mac);
-                mac2str(mac,bssid,':');
-
-                //m.searchMacKey(mlist,mac);
-                strcpy(tmp.ap,mac);
-                qDebug() << "add qos data maclist"<<tmp.ap <<tmp.devmac;
-                //qDebug() <<"--------------------";
-                mlist->append(tmp);
-                //qDebug() <<"--------------------";
-                //emit datachanged();
-            }
-
-
+	{
+		
         }
     }
     else if(type == 0x01)//control frame
@@ -341,7 +376,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 mac2str(mac,bssid,':');
                 strcpy(tmp.apMac,mac);
                 strcpy(tmp.ssid,ssid);
-                qDebug() << "add wifilist"<<tmp.apMac <<tmp.ssid;
+                //qDebug() << "add wifilist"<<tmp.apMac <<tmp.ssid;
                 //qDebug() <<"--------------------";
                 wlist->append(tmp);
                 //qDebug() <<"--------------------";

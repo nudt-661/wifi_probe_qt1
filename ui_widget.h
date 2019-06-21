@@ -14,7 +14,6 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QGraphicsView>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QTextBrowser>
@@ -30,11 +29,11 @@ public:
     QTextBrowser *aptextBrowser;
     QLabel *wifi;
     QLabel *device;
-    QGraphicsView *graphicsView;
     QComboBox *ssidComboBox;
     QTextBrowser *orgTextBrowser;
     QLabel *text;
     QComboBox *macComboBox;
+    QTextBrowser *graphTextBrowser;
 
     void setupUi(QWidget *Widget)
     {
@@ -77,10 +76,6 @@ public:
         device = new QLabel(Widget);
         device->setObjectName(QStringLiteral("device"));
         device->setGeometry(QRect(270, 10, 251, 28));
-        graphicsView = new QGraphicsView(Widget);
-        graphicsView->setObjectName(QStringLiteral("graphicsView"));
-        graphicsView->setGeometry(QRect(272, 242, 256, 111));
-        graphicsView->setSizeIncrement(QSize(10, 10));
         ssidComboBox = new QComboBox(Widget);
         ssidComboBox->setObjectName(QStringLiteral("ssidComboBox"));
         ssidComboBox->setGeometry(QRect(10, 240, 251, 35));
@@ -102,6 +97,9 @@ public:
         macComboBox = new QComboBox(Widget);
         macComboBox->setObjectName(QStringLiteral("macComboBox"));
         macComboBox->setGeometry(QRect(270, 360, 261, 29));
+        graphTextBrowser = new QTextBrowser(Widget);
+        graphTextBrowser->setObjectName(QStringLiteral("graphTextBrowser"));
+        graphTextBrowser->setGeometry(QRect(270, 240, 261, 111));
 
         retranslateUi(Widget);
 

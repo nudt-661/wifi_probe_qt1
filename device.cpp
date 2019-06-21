@@ -54,8 +54,8 @@ int device::init_socket(const char* eth)
         return -1;
     }
     fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
-    if(fd==-1);
-    qDebug()<<fd<<'\n';
+    //if(fd==-1);
+    //qDebug()<<fd<<'\n';
     struct ifreq req;
     strcpy(req.ifr_name, eth);
     ioctl(fd, SIOCGIFINDEX, &req);

@@ -49,7 +49,7 @@ public:
     void print_radiotap_namespace(struct ieee80211_radiotap_iterator *iter);
     int parse_radiotap(const char* radiotap_buf);
     int recieve_packet(int socket,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist);
-    int parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist);
+    int parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist,int pktlen);
 signals:
     void datachanged();
 
