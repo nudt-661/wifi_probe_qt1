@@ -16,6 +16,7 @@
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QTextBrowser>
 #include <QtWidgets/QWidget>
 
@@ -33,7 +34,7 @@ public:
     QTextBrowser *orgTextBrowser;
     QLabel *text;
     QComboBox *macComboBox;
-    QTextBrowser *graphTextBrowser;
+    QPushButton *paintPushButton;
 
     void setupUi(QWidget *Widget)
     {
@@ -42,7 +43,7 @@ public:
         Widget->resize(544, 406);
         macTextBrowser = new QTextBrowser(Widget);
         macTextBrowser->setObjectName(QStringLiteral("macTextBrowser"));
-        macTextBrowser->setGeometry(QRect(272, 44, 256, 192));
+        macTextBrowser->setGeometry(QRect(272, 44, 256, 301));
         QSizePolicy sizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         sizePolicy.setHorizontalStretch(1);
         sizePolicy.setVerticalStretch(0);
@@ -96,10 +97,12 @@ public:
         text->setGeometry(QRect(10, 210, 261, 31));
         macComboBox = new QComboBox(Widget);
         macComboBox->setObjectName(QStringLiteral("macComboBox"));
-        macComboBox->setGeometry(QRect(270, 360, 261, 29));
-        graphTextBrowser = new QTextBrowser(Widget);
-        graphTextBrowser->setObjectName(QStringLiteral("graphTextBrowser"));
-        graphTextBrowser->setGeometry(QRect(270, 240, 261, 111));
+        macComboBox->setGeometry(QRect(270, 360, 181, 29));
+        macComboBox->setStyleSheet(QStringLiteral("font: 75 11pt \"Source Code Pro\";"));
+        paintPushButton = new QPushButton(Widget);
+        paintPushButton->setObjectName(QStringLiteral("paintPushButton"));
+        paintPushButton->setGeometry(QRect(460, 360, 71, 31));
+        paintPushButton->setStyleSheet(QStringLiteral("font: 75 11pt \"Source Code Pro\";"));
 
         retranslateUi(Widget);
 
@@ -126,6 +129,7 @@ public:
 "<p align=\"center\" style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:10pt; color:#000000;\">\347\203\255\347\202\271\345\220\215\347\247\260</span></p></body></html>", Q_NULLPTR));
         device->setText(QApplication::translate("Widget", "<html><head/><body><p align=\"center\"><span style=\" font-family:'arial'; font-size:10pt; color:#000000;\">\350\277\236\346\216\245\345\210\260\347\203\255\347\202\271\347\232\204\350\256\276\345\244\207</span></p></body></html>", Q_NULLPTR));
         text->setText(QApplication::translate("Widget", "<html><head/><body><p><span style=\" font-size:10pt;\">\351\200\211\346\213\251\347\203\255\347\202\271\345\220\215\347\247\260\346\237\245\350\257\242\350\277\236\346\216\245\345\210\260\347\203\255\347\202\271\347\232\204\350\256\276\345\244\207</span></p></body></html>", Q_NULLPTR));
+        paintPushButton->setText(QApplication::translate("Widget", "\346\237\245\347\234\213", Q_NULLPTR));
     } // retranslateUi
 
 };

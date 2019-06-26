@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QRect>
 #include <QPainter>
+#include "paintersubwidget.h"
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -19,7 +20,7 @@ Widget::Widget(QWidget *parent) :
     QDesktopWidget* desktopWidget =QApplication::desktop();
     QRect deskRect = desktopWidget->availableGeometry();
     int x=deskRect.x();
-    //int y=deskRect.y();
+    int y=deskRect.y();
     int w=deskRect.width();
     int h=deskRect.height();
 
@@ -27,25 +28,25 @@ Widget::Widget(QWidget *parent) :
     ui->device->setGeometry(x+0.43*w,0.01*h,0.56*w,0.05*h);
     ui->wifiTextBrowser->setGeometry(x+0.01*w,0.07*h,w*0.4,h*0.5);
     //ui->wifiListView->setGeometry(x+0.01*w,0.07*h,w*0.4,h*0.5);
-    ui->macTextBrowser->setGeometry(x+0.43*w,0.07*h,0.56*w,0.5*h);
+    ui->macTextBrowser->setGeometry(x+0.43*w,0.07*h,0.56*w,0.8*h);
     ui->text->setGeometry(x+0.01*w,0.58*h,w*0.4,h*0.05);
     ui->ssidComboBox->setGeometry(x+0.01*w,0.64*h,w*0.4,h*0.1);
     ui->aptextBrowser->setGeometry(x+0.01*w,0.75*h,w*0.4,h*0.08);
     ui->orgTextBrowser->setGeometry(x+0.01*w,0.84*h,w*0.4,h*0.14);
-    ui->graphTextBrowser->setGeometry(x+0.43*w,0.58*h,w*0.56,0.32*h);
-    ui->macComboBox->setGeometry(x+0.43*w,0.91*h,w*0.56,0.08*h);
-
+    //ui->graphTextBrowser->setGeometry(x+0.43*w,0.58*h,w*0.56,0.32*h);
+    ui->macComboBox->setGeometry(x+0.43*w,0.88*h,w*0.4,0.1*h);
+    ui->paintPushButton->setGeometry(x+0.85*w,0.88*h,w*0.14,0.1*h);
+    //ui->paintPushButton->setDisabled(true);
     this->timerHandler=0;
-    timerHandler=this->startTimer(10000);
+    timerHandler=this->startTimer(1000);
     if(timerHandler==0)
         return;
+     p=new PainterSubWidget();
 
     this->mlist=new QList<macList::mac_list>;
     this->wlist=new QList<wifiList::wifi_list>;
     this->devmac=new QList<char*> ;
     memset(this->ap,'\0',32);
-    this->point=new QPoint;
-    this->path=new QPainterPath;
     thread=new getWifiData(this->mlist,this->wlist);
     thread->start();
 
@@ -58,6 +59,7 @@ Widget::Widget(QWidget *parent) :
     //connect(ui->pushButton,&QPushButton::clicked,this,&Widget::destroy);
     connect(thread,&getWifiData::change,this,&Widget::dealdone);
     connect(this,&Widget::destroyed,this,&Widget::stopthread);
+    connect(ui->paintPushButton,&QPushButton::clicked,this,&Widget::doPaint);
 }
 void Widget::dealComboBoxChanged()
 {
@@ -70,7 +72,7 @@ void Widget::dealComboBoxChanged()
     else
     {*/
         ui->macTextBrowser->clear();
-        ui->graphTextBrowser->clear();
+        //ui->graphTextBrowser->clear();
         ui->macComboBox->clear();
         this->devmac->clear();
         memset(this->ap,'\0',32);
@@ -83,12 +85,12 @@ void Widget::dealComboBoxChanged()
             QList<wifiList::wifi_list>::iterator iter=wlist->begin();
             for(;iter!=wlist->end();iter++)
             {
-                QString name=(QString)iter->ssid;
+                QString name=(QString)iter->apMac;
                 if(tmp==name)
                 {
                     ui->aptextBrowser->clear();
                     ui->orgTextBrowser->clear();
-                    ui->aptextBrowser->append(iter->apMac);
+                    ui->aptextBrowser->append(iter->ssid);
                     strcpy(this->ap,iter->apMac);
                     QList<macList::mac_list>::iterator maciter=mlist->begin();
                     for(;maciter!=mlist->end();maciter++)
@@ -173,17 +175,18 @@ void Widget::dealdone()
         //ui->ssidComboBox->clear();
         for(;iter!=wlist->end();iter++)
         {
-            /*
+
             ui->wifiTextBrowser->insertPlainText(iter->apMac);// wlist->first().apMac);
             ui->wifiTextBrowser->insertPlainText(" ");
             ui->wifiTextBrowser->insertPlainText(iter->ssid);//wlist->first().ssid);
             ui->wifiTextBrowser->insertPlainText("\n");
-            */
 
-            ui->wifiTextBrowser->append(iter->ssid);
-            if(ui->ssidComboBox->findText(iter->ssid)==-1)
+
+            //ui->wifiTextBrowser->append(iter->apMac);
+            //ui->wifiTextBrowser->append(iter->ssid);
+            if(ui->ssidComboBox->findText(iter->apMac)==-1)
             {
-                ui->ssidComboBox->addItem(iter->ssid);
+                ui->ssidComboBox->addItem(iter->apMac);
             }
             //ui->ssidComboBox->addItem(QWidget::tr(iter->ssid));
             //text->append(iter->ssid);
@@ -244,41 +247,101 @@ void Widget::timerEvent(QTimerEvent *)
 {
     if(!this->mlist->isEmpty())
     {
+
         QList<macList::mac_list>::iterator iter = mlist->begin();
         for(;iter!=mlist->end();iter++)
         {
+            qDebug()<<"change maclist index:"<<iter->devmac<<iter->ap<<iter->index<<iter->traffic[iter->index];
+            if(ui->macComboBox->currentText()!="")
+            {
+                QString tmp=(QString)iter->devmac;
+                if(ui->macComboBox->currentText()==tmp)
+                {
+                    int i;//iter->index;
+                    int index=iter->index;
+                    for(i=TRAFFIC_NUM-1;i>=0;i--)
+                    {
+                        p->pointY[i]=iter->traffic[index];
+                        //qDebug()<<p->pointY[index];
+
+                        index=(index-1);
+                        if(index<0){
+                            index=TRAFFIC_NUM-1;
+                        }
+                    }
+                    p->update();
+                    //p->paintNewPoint(iter->traffic[iter->index],iter->traffic[(iter->index+1)%60],iter->index);
+                }
+
+            }
+            else{
+
+                int index=0;
+                for(;index<TRAFFIC_NUM;index++)
+                {
+                    p->pointY[index]=0;
+                    //qDebug()<<p->pointY[index];
+                }
+                p->update();
+
+            }
             iter->index=(iter->index+1)%(60);
             iter->traffic[iter->index]=0;
-            qDebug()<<"change maclist index:"<<iter->devmac<<iter->ap<<iter->index<<iter->traffic[iter->index];
+
         }
+
     }
 }
 void Widget::dealmacCommoBoxChanged()
 {
-    QString mac = ui->macComboBox->currentText();
-    int index=ui->macComboBox->currentIndex();
-    qDebug()<<mac<<index;
-    if(index>=0)
+    //ui->paintPushButton->setDisabled(true);
+    if(!this->mlist->isEmpty())
     {
-        ui->graphTextBrowser->clear();
-        //qDebug()<<"|||||||||||||||||||||||";
-        if(!devmac->isEmpty())
+
+        QList<macList::mac_list>::iterator iter = mlist->begin();
+        for(;iter!=mlist->end();iter++)
         {
-            ui->graphTextBrowser->append(devmac->at(index));
-            ui->graphTextBrowser->append(ap);
-            macList m;
-            int traffic[TRAFFIC_NUM]={0};
-            int traffic_index=0;
-            char mac[32]={'\0'};
-            strcpy(mac,devmac->at(index));
-            m.searchMacKey(this->mlist,mac,ap,traffic,&traffic_index);
-           /* int i=0;
-            for(i=0;i<TRAFFIC_NUM;i++)
+            //qDebug()<<"change maclist index:"<<iter->devmac<<iter->ap<<iter->index<<iter->traffic[iter->index];
+            if(ui->macComboBox->currentText()!="")
             {
-                ui->graphTextBrowser->insertPlainText((QString)traffic[i]);
-                ui->graphTextBrowser->insertPlainText(",");
-            }*/
+                QString tmp=(QString)iter->devmac;
+                if(ui->macComboBox->currentText()==tmp)
+                {
+                    int i;//iter->index;
+                    int index=iter->index;
+                    for(i=TRAFFIC_NUM-1;i>=0;i--)
+                    {
+                        p->pointY[i]=iter->traffic[index];
+                        //qDebug()<<p->pointY[index];
+
+                        index=(index-1);
+                        if(index<0){
+                            index=TRAFFIC_NUM-1;
+                        }
+                    }
+                }
+
+            }
+            else
+            {
+
+                int index=0;
+                for(;index<TRAFFIC_NUM;index++)
+                {
+                    p->pointY[index]=0;
+                    //qDebug()<<p->pointY[index];
+                }
+            }
 
         }
+
     }
+    //ui->paintPushButton->setEnabled(true);
+}
+void Widget::doPaint(){
+
+    p->setWindowTitle("流量曲线");
+
+    p->show();
+
 }

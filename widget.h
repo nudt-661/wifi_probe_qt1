@@ -5,11 +5,13 @@
 #include <QTextBrowser>
 #include <QList>
 #include <QTimer>
+#include <QPainter>
 #include "maclist.h"
 #include "wifilist.h"
 #include "getwifidata.h"
 #include "sniff80211.h"
 #include <QStringList>
+#include "paintersubwidget.h"
 namespace Ui {
 class Widget;
 }
@@ -34,10 +36,9 @@ private slots:
     void dealExit();
     void dealComboBoxChanged();
     void dealmacCommoBoxChanged();
-
+    void doPaint();
 protected:
     void timerEvent(QTimerEvent *);
-
 
 private:
 
@@ -45,11 +46,12 @@ private:
     getWifiData *thread;
     QList<char*> *devmac;
     char ap[32];
-    QPoint *point;
-    QPainterPath *path;
+    PainterSubWidget *p;
+    int point[60];
+
     int timerHandler;
     int trafficindex;
-    //void paintEvent(QPaintEvent *);
+
 
 };
 

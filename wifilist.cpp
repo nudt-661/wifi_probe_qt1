@@ -11,7 +11,7 @@ bool wifiList::searchKey(QList<wifiList::wifi_list> *wlist,char key[32])
         QList<wifiList::wifi_list>::iterator iter = wlist->begin();
         for(;iter != wlist->end();iter++)
         {
-            if(strcmp(iter->ssid,key)==0)
+            if(strcmp(iter->apMac,key)==0)
                 return true;
         }
         return false;

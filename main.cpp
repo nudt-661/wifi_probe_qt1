@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
     system("sudo ifconfig wlan0 up");*/
     Widget w;
 
-    w.setWindowFlags(/*Qt::WindowMinMaxButtonsHint && */Qt::FramelessWindowHint);
+    //w.setWindowFlags(/*Qt::WindowMinMaxButtonsHint && */Qt::FramelessWindowHint);
 
     QDesktopWidget* desktopWidget =QApplication::desktop();
 
@@ -25,6 +25,6 @@ int main(int argc, char *argv[])
     w.setGeometry(deskRect.x(),0,deskRect.width(),deskRect.height());
     //qDebug() << deskRect.x()<< deskRect.y() << deskRect.width() <<deskRect.height();
     w.showFullScreen();
-
+    //w.show();
     return a.exec();
 }
