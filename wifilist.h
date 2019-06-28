@@ -11,10 +11,10 @@ class wifiList : public QWidget
 public:
     explicit wifiList(QWidget *parent = 0);
     struct wifi_list{
-        char ssid[32];
-        char apMac[32];
+        char ssid[100];
+        char apMac[20];
     };
-    bool searchKey(QList<wifiList::wifi_list> *wlist,char key[32]);
+    bool searchKey(QList<wifiList::wifi_list> *wlist,char key[20]);
 signals:
 
 public slots:

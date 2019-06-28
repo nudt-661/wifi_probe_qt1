@@ -37,19 +37,22 @@ private slots:
     void dealComboBoxChanged();
     void dealmacCommoBoxChanged();
     void doPaint();
+signals:
+    void dealfiledata();
 protected:
-    void timerEvent(QTimerEvent *);
+    void timerEvent(QTimerEvent *event);
 
 private:
 
     Ui::Widget *ui;
     getWifiData *thread;
     QList<char*> *devmac;
-    char ap[32];
+    char ap[20];
     PainterSubWidget *p;
     int point[60];
 
     int timerHandler;
+    int timer2Handler;
     int trafficindex;
 
 

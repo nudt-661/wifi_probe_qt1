@@ -4,7 +4,7 @@ wifiList::wifiList(QWidget *parent) : QWidget(parent)
 {
 
 }
-bool wifiList::searchKey(QList<wifiList::wifi_list> *wlist,char key[32])
+bool wifiList::searchKey(QList<wifiList::wifi_list> *wlist,char key[20])
 {
     if(!wlist->isEmpty())
     {

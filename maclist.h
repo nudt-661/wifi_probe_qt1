@@ -23,14 +23,14 @@ public:
     void changeTrafficData(trafficList head,int traffic,QString time,int len,int index);
     explicit macList(QWidget *parent = 0);
     struct mac_list{
-        char devmac[32];
-        char ap[32];
+        char devmac[20];
+        char ap[20];
         int traffic[TRAFFIC_NUM];
         //QString time[TRAFFIC_NUM];
         int index;
         //trafficList macTraffic;
     };
-    int searchMacKey(QList<macList::mac_list> *mlist,char key[32],char ap[],int *traffic,int *traffic_index);
+    int searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index);
 signals:
 
 public slots:

@@ -37,7 +37,7 @@ public:
     struct SSID {
         uint8_t version;
         uint8_t length;
-        char name[32];
+        char name[100];
     } __attribute__ ((packed)) ;
     struct beaconInfo {
         uint64_t timestamp;
@@ -45,15 +45,24 @@ public:
         uint16_t capability_info;
         struct SSID Sname;
     } __attribute__ ((packed)) ;
-    void mac2str(char szMac[32],unsigned char* pMac,const char chKen);
+    struct associationInfo{
+        uint16_t capability_Info;
+        uint16_t listen_interval;
+        struct SSID Sname;
+    } __attribute__ ((packed));
+    void mac2str(char szMac[20],unsigned char* pMac,const char chKen);
     void print_radiotap_namespace(struct ieee80211_radiotap_iterator *iter);
     int parse_radiotap(const char* radiotap_buf);
+    void setFlag();
     int recieve_packet(int socket,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist);
+    void readWifiDataFromFile(QList<wifiList::wifi_list> *wlist);
     int parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist,int pktlen);
 signals:
     void datachanged();
 
 public slots:
+private:
+    int flag;
 };
 
 #endif // SNIFF80211_H

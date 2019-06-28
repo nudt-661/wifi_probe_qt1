@@ -4,7 +4,7 @@ macList::macList(QWidget *parent) : QWidget(parent)
 {
 
 }
-int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[32],char ap[32],int *traffic,int *traffic_index)
+int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index)
 {
     if(!mlist->isEmpty())
     {
@@ -22,7 +22,16 @@ int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[32],char ap[3
                     return i;
                 }
                 else
+                {
+                    int j;
+                    for(j=0;j<60;j++)
+                    {
+                        iter->traffic[j]=0;
+
+                    }
+                    iter->index=0;
                     return -1;
+                }
             }
             i++;
         }

@@ -38,15 +38,17 @@ Widget::Widget(QWidget *parent) :
     ui->paintPushButton->setGeometry(x+0.85*w,0.88*h,w*0.14,0.1*h);
     //ui->paintPushButton->setDisabled(true);
     this->timerHandler=0;
+    this->timer2Handler=0;
     timerHandler=this->startTimer(1000);
-    if(timerHandler==0)
+    timer2Handler=this->startTimer(10000);
+    if(timerHandler==0||timer2Handler==0)
         return;
      p=new PainterSubWidget();
 
     this->mlist=new QList<macList::mac_list>;
     this->wlist=new QList<wifiList::wifi_list>;
     this->devmac=new QList<char*> ;
-    memset(this->ap,'\0',32);
+    memset(this->ap,'\0',20);
     thread=new getWifiData(this->mlist,this->wlist);
     thread->start();
 
@@ -59,23 +61,16 @@ Widget::Widget(QWidget *parent) :
     //connect(ui->pushButton,&QPushButton::clicked,this,&Widget::destroy);
     connect(thread,&getWifiData::change,this,&Widget::dealdone);
     connect(this,&Widget::destroyed,this,&Widget::stopthread);
+    connect(this,&Widget::dealfiledata,this,&Widget::dealdone);
     connect(ui->paintPushButton,&QPushButton::clicked,this,&Widget::doPaint);
 }
 void Widget::dealComboBoxChanged()
 {
-    /*
-    if(ui->ssidComboBox->currentText()=="")
-    {
-        ui->macTextBrowser->clear();
-        ui->macTextBrowser->append("no data");
-    }
-    else
-    {*/
         ui->macTextBrowser->clear();
         //ui->graphTextBrowser->clear();
         ui->macComboBox->clear();
         this->devmac->clear();
-        memset(this->ap,'\0',32);
+        memset(this->ap,'\0',20);
         //ui->macComboBox->setCurrentIndex(0);
         ui->aptextBrowser->clear();
         if(!this->wlist->isEmpty())
@@ -85,13 +80,13 @@ void Widget::dealComboBoxChanged()
             QList<wifiList::wifi_list>::iterator iter=wlist->begin();
             for(;iter!=wlist->end();iter++)
             {
-                QString name=(QString)iter->apMac;
+                QString name=(QString)iter->ssid;
                 if(tmp==name)
                 {
                     ui->aptextBrowser->clear();
                     ui->orgTextBrowser->clear();
-                    ui->aptextBrowser->append(iter->ssid);
-                    strcpy(this->ap,iter->apMac);
+                    ui->aptextBrowser->append(iter->apMac);
+                    strcpy(this->ap,iter->apMac);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     QList<macList::mac_list>::iterator maciter=mlist->begin();
                     for(;maciter!=mlist->end();maciter++)
                     {
@@ -154,7 +149,7 @@ void Widget::dealComboBoxChanged()
 }
 void Widget::dealdone()
 {
-    qDebug()<<"deal wifi data change";
+    //aqDebug()<<"deal wifi data change";
 
     /*if(!this->mlist->isEmpty())
     {
@@ -168,25 +163,26 @@ void Widget::dealdone()
     }*/
     if(!this->wlist->isEmpty())
     {
-        //qDebug()<<this->wlist->first().apMac<<this->wlist->first().ssid;
+
         QList<wifiList::wifi_list>::iterator iter=wlist->begin();
         ui->wifiTextBrowser->clear();
 
         //ui->ssidComboBox->clear();
         for(;iter!=wlist->end();iter++)
         {
-
-            ui->wifiTextBrowser->insertPlainText(iter->apMac);// wlist->first().apMac);
+            qDebug()<<iter->apMac<<iter->ssid;
+            /*ui->wifiTextBrowser->insertPlainText(iter->apMac);// wlist->first().apMac);
             ui->wifiTextBrowser->insertPlainText(" ");
             ui->wifiTextBrowser->insertPlainText(iter->ssid);//wlist->first().ssid);
             ui->wifiTextBrowser->insertPlainText("\n");
-
+            */
 
             //ui->wifiTextBrowser->append(iter->apMac);
-            //ui->wifiTextBrowser->append(iter->ssid);
-            if(ui->ssidComboBox->findText(iter->apMac)==-1)
+            ui->wifiTextBrowser->append(iter->ssid);
+
+            if(ui->ssidComboBox->findText(iter->ssid)==-1)
             {
-                ui->ssidComboBox->addItem(iter->apMac);
+                ui->ssidComboBox->addItem(iter->ssid);
             }
             //ui->ssidComboBox->addItem(QWidget::tr(iter->ssid));
             //text->append(iter->ssid);
@@ -207,6 +203,7 @@ void Widget::stopthread()
         thread->wait();
     }
     this->killTimer(this->timerHandler);
+    this->killTimer(this->timer2Handler);
     //delete this->wlist;
     //delete this->mlist;
 }
@@ -243,53 +240,64 @@ void Widget::on_wifiTextBrowser_sourceChanged(const QUrl &arg1){
 
 }
 
-void Widget::timerEvent(QTimerEvent *)
+void Widget::timerEvent(QTimerEvent *event)
 {
-    if(!this->mlist->isEmpty())
+    if(event->timerId()==timerHandler)
     {
-
-        QList<macList::mac_list>::iterator iter = mlist->begin();
-        for(;iter!=mlist->end();iter++)
+        if(!this->mlist->isEmpty())
         {
-            qDebug()<<"change maclist index:"<<iter->devmac<<iter->ap<<iter->index<<iter->traffic[iter->index];
-            if(ui->macComboBox->currentText()!="")
-            {
-                QString tmp=(QString)iter->devmac;
-                if(ui->macComboBox->currentText()==tmp)
-                {
-                    int i;//iter->index;
-                    int index=iter->index;
-                    for(i=TRAFFIC_NUM-1;i>=0;i--)
-                    {
-                        p->pointY[i]=iter->traffic[index];
-                        //qDebug()<<p->pointY[index];
 
-                        index=(index-1);
-                        if(index<0){
-                            index=TRAFFIC_NUM-1;
+            QList<macList::mac_list>::iterator iter = mlist->begin();
+            for(;iter!=mlist->end();iter++)
+            {
+               // qDebug()<<"change maclist index:"<<iter->devmac<<iter->ap<<iter->index<<iter->traffic[iter->index];
+                if(ui->macComboBox->currentText()!="")
+                {
+                    QString tmp=(QString)iter->devmac;
+                    if(ui->macComboBox->currentText()==tmp)
+                    {
+                        qDebug()<<"**********************************";
+                        int i;//iter->index;
+                        int index=iter->index;
+                        for(i=TRAFFIC_NUM-1;i>=0;i--)
+                        {
+                            p->pointY[i]=iter->traffic[index];
+                            printf("pointY[%d]=%d  traffic[%d]=%d\n",i,p->pointY[i],index,iter->traffic[index]);
+
+                            index=(index-1);
+                            if(index<0){
+                                index=TRAFFIC_NUM-1;
+                            }
                         }
+                        //qDebug()<<p->pointY;
+                        p->update();
+                    //p->paintNewPoint(iter->traffic[iter->index],iter->traffic[(iter->index+1)%60],iter->index);
+                    }
+
+                }
+                else{
+
+                    int index=0;
+                    for(;index<TRAFFIC_NUM;index++)
+                    {
+                        p->pointY[index]=0;
+                        //qDebug()<<p->pointY[index];
                     }
                     p->update();
-                    //p->paintNewPoint(iter->traffic[iter->index],iter->traffic[(iter->index+1)%60],iter->index);
+
                 }
+                iter->index=(iter->index+1)%(60);
+                iter->traffic[iter->index]=0;
 
             }
-            else{
-
-                int index=0;
-                for(;index<TRAFFIC_NUM;index++)
-                {
-                    p->pointY[index]=0;
-                    //qDebug()<<p->pointY[index];
-                }
-                p->update();
-
-            }
-            iter->index=(iter->index+1)%(60);
-            iter->traffic[iter->index]=0;
 
         }
-
+    }
+    else if(event->timerId()==timer2Handler)
+    {
+        sniff80211 s;
+        s.readWifiDataFromFile(this->wlist);
+        emit dealfiledata();
     }
 }
 void Widget::dealmacCommoBoxChanged()

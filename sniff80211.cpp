@@ -15,16 +15,17 @@
 #include "getwifidata.h"
 sniff80211::sniff80211(QWidget *parent) : QWidget(parent)
 {
-
+    qDebug()<<"**************init sniff****************";
+    //this->flag=1;
 }
 
-void sniff80211::mac2str(char szMac[32],unsigned char *pMac,const char chKen)
+void sniff80211::mac2str(char szMac[20],unsigned char *pMac,const char chKen)
 {
     if(pMac==NULL)
     {
         exit(-1);
     }
-    char szFormat[]="%02X:%02X:%02X:%02X:%02X:%02X\0";
+    char szFormat[]="%02x:%02x:%02x:%02x:%02x:%02x\0";
     int nLen =strlen(szFormat);
     if(chKen != ':')
     {
@@ -183,6 +184,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
     struct ieee80211_radiotap_header* radiotap_header = NULL;
     struct wlan_frame *wh=NULL;
     struct beaconInfo *bi = NULL;
+    struct associationInfo  *ci=NULL;
     if(buffer == NULL)
     {
         return -1;
@@ -208,7 +210,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 ta = wh->addr2;
                 bssid = wh->addr3;
                 macList::mac_list tmp;
-                char mac[32];
+                char mac[20]={'\0'};
                 mac2str(mac,ta,':');
                 strcpy(tmp.devmac,mac);
                 mac2str(mac,bssid,':');
@@ -234,6 +236,10 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     {
                         tmp.traffic[j]=0;
                     }
+                    for(j=0;j<60;j++)
+                    {
+                        qDebug()<<tmp.traffic[j];
+                    }
                     tmp.index=0;
                     mlist->append(tmp);
                     //qDebug() <<"--------------------";
@@ -245,6 +251,11 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     //qDebug()<<"traffic:"<<tmp.traffic[traffic_index]+pktlen;
                     tmp.traffic[traffic_index]=tmp.traffic[traffic_index]+pktlen;
                     tmp.index=traffic_index;
+                    int i=0;
+                    for(i=0;i<TRAFFIC_NUM;i++)
+                    {
+                        printf("traffic[%d]=%d\n",i,tmp.traffic[i]);
+                    }
                     //m.changeTrafficData(tmp.macTraffic,traffic,"",60,0);
                     mlist->replace(index,tmp);
                     //qDebug() <<"---------------------";
@@ -257,7 +268,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 ta = wh->addr2;
                 ra = wh->addr3;
                 macList::mac_list tmp;
-                char mac[32];
+                char mac[20]={'\0'};
                 mac2str(mac,ta,':');
                 strcpy(tmp.devmac,mac);
                 mac2str(mac,bssid,':');
@@ -280,6 +291,10 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     {
                         tmp.traffic[j]=0;
                     }
+                    for(j=0;j<60;j++)
+                    {
+                        qDebug()<<tmp.traffic[j];
+                    }
                     tmp.index=0;
                     //qDebug()<<"tp ap..................................";
                     //m.addTraffic(tmp.macTraffic,len,"",60,0);
@@ -295,6 +310,11 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.traffic[traffic_index]=tmp.traffic[traffic_index]+pktlen;
                     //m.changeTrafficData(tmp.macTraffic,traffic,"",60,0);
                     tmp.index=traffic_index;
+                    int i=0;
+                    for(i=0;i<TRAFFIC_NUM;i++)
+                    {
+                        printf("traffic[%d]=%d\n",i,tmp.traffic[i]);
+                    }
                     mlist->replace(index,tmp);
                     //qDebug() <<"---------------------";
                 }
@@ -306,7 +326,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                 bssid = wh->addr2;
                 ta = wh->addr3;
                 macList::mac_list tmp;
-                char mac[32];
+                char mac[20]={'\0'};
 
                 mac2str(mac,ta,':');
                 strcpy(tmp.devmac,mac);
@@ -329,6 +349,10 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     {
                         tmp.traffic[j]=0;
                     }
+                    for(j=0;j<60;j++)
+                    {
+                        qDebug()<<tmp.traffic[j];
+                    }
                     tmp.index=0;
                     //qDebug()<<"from ap....................";
                     //m.addTraffic(tmp.macTraffic,len,"",60,0);
@@ -343,6 +367,11 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     //qDebug()<<"traffic:"<<tmp.traffic[traffic_index]+pktlen;
                     tmp.traffic[traffic_index]=tmp.traffic[traffic_index]+pktlen;
                     //m.changeTrafficData(tmp.macTraffic,traffic,"",60,0);
+                    int i=0;
+                    for(i=0;i<TRAFFIC_NUM;i++)
+                    {
+                        printf("traffic[%d]=%d\n",i,tmp.traffic[i]);
+                    }
                     tmp.index=traffic_index;
                     mlist->replace(index,tmp);
                     //qDebug() <<"---------------------";
@@ -351,7 +380,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
             }
             else
             {
-
+                qDebug() <<"################################";
             }
 
         }
@@ -362,6 +391,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
     }
     else if(type == 0x01)//control frame
     {
+        /*
         if(stype == 0x0b)//RTS
         {
             ra = wh->addr1;//STA
@@ -371,10 +401,11 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
         {
             ta = wh->addr1;
         }
-
+*/
     }
     else if(type == 0x0)
     {
+
         ra = wh->addr1;
         ta = wh->addr2;
         bssid = wh->addr3;
@@ -382,12 +413,13 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
         if(stype == 0x08)//beacon
         {
             wifiList::wifi_list tmp;
-            char mac[32];
+            memset(tmp.apMac,'\0',20);
+            memset(tmp.ssid,'\0',100);
+            char mac[20];
             mac2str(mac,bssid,':');
             strcpy(tmp.apMac,mac);
             bi = (struct beaconInfo*)(buffer+radiotap_len+24);
-            char ssid[32];
-
+            char ssid[100]={'\0'};
             memcpy(ssid,bi->Sname.name,bi->Sname.length);
             ssid[bi->Sname.length]='\0';
 
@@ -397,16 +429,172 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
             {
                 //qDebug() << "add wifilist"<<tmp.apMac <<tmp.ssid;
                 //qDebug() <<"--------------------";
+                while(this->flag==0);
                 wlist->append(tmp);
+
                 //qDebug() <<"--------------------";
                 emit datachanged();
+                this->flag=1;
             }
 
         }
+        else if(stype==0x05)//probe respones
+        {
+            wifiList::wifi_list tmp;
+            memset(tmp.apMac,'\0',20);
+            memset(tmp.ssid,'\0',100);
+            char mac[20]={'\0'};
+            mac2str(mac,bssid,':');
+            strcpy(tmp.apMac,mac);
+            bi = (struct beaconInfo*)(buffer+radiotap_len+24);
+            char ssid[100]={'\0'};
+
+            memcpy(ssid,bi->Sname.name,bi->Sname.length);
+            ssid[bi->Sname.length]='\0';
+
+            strcpy(tmp.ssid,ssid);
+            wifiList w;
+            if(!w.searchKey(wlist,tmp.apMac))
+            {
+                while(this->flag==0);
+
+                this->flag=0;
+                wlist->append(tmp);
+
+                //qDebug() <<"--------------------";
+                emit datachanged();
+                this->flag=1;
+
+            }
+
+        }
+        else if (stype==0x0)//association request
+        {
+            wifiList::wifi_list tmp;
+            memset(tmp.apMac,'\0',20);
+            memset(tmp.ssid,'\0',100);
+            char mac[20]={'\0'};
+            mac2str(mac,bssid,':');
+            strcpy(tmp.apMac,mac);
+            ci = (struct associationInfo*)(buffer+radiotap_len+24);
+            char ssid[100]={'\0'};
+
+            memcpy(ssid,ci->Sname.name,ci->Sname.length);
+            ssid[ci->Sname.length]='\0';
+
+            strcpy(tmp.ssid,ssid);
+            wifiList w;
+            if(!w.searchKey(wlist,tmp.apMac))
+            {
+                while(this->flag==0);
+                this->flag=0;
+                wlist->append(tmp);
+
+                //qDebug() <<"--------------------";
+                emit datachanged();
+                this->flag=1;
+
+            }
+
+        }
+
+
     }
     else
     {
         return -1;
     }
     return 0;
+}
+void sniff80211::readWifiDataFromFile(QList<wifiList::wifi_list> *wlist){
+    int i, j;
+    FILE *fp;
+    char ssid[20][100];
+    char macstr[20][20];
+    int ssidn, macn;
+    fp = fopen("./ssid","r");
+    if(fp==NULL)
+    {
+        qDebug()<<"Fail to open file ssid";
+        exit(1);
+    }
+    ssidn = 0;
+    memset(ssid, 0, 20*100);
+    while (!feof(fp))
+    {
+        fgets(ssid[ssidn], 100, fp);  //读取一行
+        //printf("ssid len is %d\n", strlen(ssid[ssidn]));
+        //printf("ssid %d %s\n", ssidn, ssid[ssidn]);
+        if (strlen(ssid[ssidn])>0)
+        {
+            ssid[ssidn][strlen(ssid[ssidn])-1] = '\0';
+            ssidn++;
+        }
+    }
+    fclose(fp);
+
+    fp=fopen("./bssid","r");
+    if(fp==NULL)
+    {
+        qDebug()<<"Fail to open file bssid";
+        exit(1);
+    }
+    macn = 0;
+    memset(macstr, 0, 20*20);
+    while (!feof(fp))
+    {
+        fgets(macstr[macn], 20, fp);  //读取一行
+        if (strlen(macstr[macn])>0)
+        {
+            macstr[macn][strlen(macstr[macn])-1] = '\0';
+            macn++;
+        }
+    }
+    fclose(fp);
+
+    if (ssidn != macn)
+    {
+        qDebug()<<"the number of ssid is NOT equal to manc!!!!";
+        qDebug()<<"ssidn"<<ssidn<<"macn"<<macn;
+        exit(1);
+    }
+    /*for (i=0; i<macn; i++)
+    {
+        printf("ssid %d is %s\n", i, ssid[i]);
+        printf("mac  %d is %s\n", i, macstr[i]);
+    }*/
+    //add ssid,mac to wifi list
+    if(!wlist->isEmpty())
+    {
+        //QList<wifiList::wifi_list>::iterator iter = wlist->begin();
+        wifiList w;
+        //for(;iter != wlist->end();iter++)
+        //{
+            for (i=0;i<macn;i++)
+            {
+
+
+                if(!w.searchKey(wlist,macstr[i]))
+                {
+                    //qDebug()<<"--------    "<<ssid[i]<<macstr[i]<<"     ---------";
+                    wifiList::wifi_list tmp;
+                    memset(tmp.apMac,'\0',20);
+                    memset(tmp.ssid,'\0',100);
+                    strcpy(tmp.apMac,macstr[i]);
+                    strcpy(tmp.ssid,ssid[i]);
+                    while(this->flag==0);
+                    this->flag=0;
+                    wlist->append(tmp);
+                    //emit dealfiledata();
+
+
+                    this->flag=1;
+                }
+            }
+
+        //}
+    }
+}
+void sniff80211::setFlag(){
+    this->flag=1;
 }
