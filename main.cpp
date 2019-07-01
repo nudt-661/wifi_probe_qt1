@@ -5,6 +5,8 @@
 #include <QApplication>
 #include <QRect>
 #include <QDebug>
+int SCAN_MODE;
+int FLOW_MODE;
 int main(int argc, char *argv[])
 {
 

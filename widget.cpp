@@ -10,6 +10,16 @@
 #include <QApplication>
 #include <QRect>
 #include <QPainter>
+#include <net/if.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <linux/if_ether.h>
+#include <linux/if_packet.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <linux/wireless.h>
 #include "paintersubwidget.h"
 extern int SCAN_MODE;
 Widget::Widget(QWidget *parent) :
@@ -40,19 +50,18 @@ Widget::Widget(QWidget *parent) :
     //ui->paintPushButton->setDisabled(true);
     this->timerHandler=0;
     this->timer2Handler=0;
-    timerHandler=this->startTimer(1000);
-    timer2Handler=this->startTimer(10000);
+    timerHandler=this->startTimer(10000);
+    timer2Handler=this->startTimer(200);
     if(timerHandler==0||timer2Handler==0)
         return;
      p=new PainterSubWidget();
-
+    this->flag=0;
     this->mlist=new QList<macList::mac_list>;
     this->wlist=new QList<wifiList::wifi_list>;
-    this->devmac=new QList<char*> ;
-    memset(this->ap,'\0',20);
+    //this->devmac=new QList<char*> ;
+    //memset(this->ap,'\0',20);
     thread=new getWifiData(this->mlist,this->wlist);
     thread->start();
-
 
     connect(ui->macComboBox,&QComboBox::currentTextChanged,this,&Widget::dealmacCommoBoxChanged);
     connect(ui->ssidComboBox,&QComboBox::currentTextChanged,this,&Widget::dealComboBoxChanged);
@@ -72,8 +81,8 @@ void Widget::dealComboBoxChanged()
         ui->macTextBrowser->clear();
         //ui->graphTextBrowser->clear();
         ui->macComboBox->clear();
-        this->devmac->clear();
-        memset(this->ap,'\0',20);
+        //this->devmac->clear();
+        //memset(this->ap,'\0',20);
         //ui->macComboBox->setCurrentIndex(0);
         ui->aptextBrowser->clear();
         if(!this->wlist->isEmpty())
@@ -89,16 +98,17 @@ void Widget::dealComboBoxChanged()
                     ui->aptextBrowser->clear();
                     ui->orgTextBrowser->clear();
                     ui->aptextBrowser->append(iter->apMac);
-                    strcpy(this->ap,iter->apMac);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    //strcpy(this->ap,iter->apMac);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     QList<macList::mac_list>::iterator maciter=mlist->begin();
                     for(;maciter!=mlist->end();maciter++)
                     {
                         QString mname=(QString)maciter->ap;
                         if(mname==iter->apMac)
                         {
+                            qDebug()<<maciter->devmac;
                             ui->macTextBrowser->append(maciter->devmac);
                             ui->macComboBox->addItem(maciter->devmac);
-                            this->devmac->append(maciter->devmac);
+                            //this->devmac->append(maciter->devmac);
                             char *devmac_prefix=NULL;
                             devmac_prefix=(char *)malloc(sizeof(char)*10);
                             for(int i=0;i<8;i+=3)
@@ -114,7 +124,7 @@ void Widget::dealComboBoxChanged()
                             //qDebug() << (QString)mac_prefix;
                             char devorg_name[ORG_NAME_LEN]={'\0'};
                             int re=searchOrg(devmac_prefix,devorg_name);
-                            qDebug() << (QString)devorg_name;
+                            //qDebug() << (QString)devorg_name;
                             ui->macTextBrowser->append((QString)devorg_name);
                             if(re==0)
                                 ui->macTextBrowser->append(" ");
@@ -136,10 +146,10 @@ void Widget::dealComboBoxChanged()
                         }
                     }
                     mac_prefix[8]='\0';
-                    qDebug() << (QString)mac_prefix;
+                    //qDebug() << (QString)mac_prefix;
                     char org_name[ORG_NAME_LEN]={'\0'};
                     searchOrg(mac_prefix,org_name);
-                    qDebug() << (QString)org_name;
+                    //qDebug() << (QString)org_name;
                     ui->orgTextBrowser->append((QString)org_name);
                     free(mac_prefix);
                     mac_prefix=NULL;
@@ -173,7 +183,7 @@ void Widget::dealdone()
         //ui->ssidComboBox->clear();
         for(;iter!=wlist->end();iter++)
         {
-            qDebug()<<iter->apMac<<iter->ssid;
+            //qDebug()<<iter->apMac<<iter->ssid;
             /*ui->wifiTextBrowser->insertPlainText(iter->apMac);// wlist->first().apMac);
             ui->wifiTextBrowser->insertPlainText(" ");
             ui->wifiTextBrowser->insertPlainText(iter->ssid);//wlist->first().ssid);
@@ -259,13 +269,13 @@ void Widget::timerEvent(QTimerEvent *event)
                     QString tmp=(QString)iter->devmac;
                     if(ui->macComboBox->currentText()==tmp)
                     {
-                        qDebug()<<"**********************************";
+                        //qDebug()<<"**********************************";
                         int i;//iter->index;
                         int index=iter->index;
                         for(i=TRAFFIC_NUM-1;i>=0;i--)
                         {
                             p->pointY[i]=iter->traffic[index];
-                            printf("pointY[%d]=%d  traffic[%d]=%d\n",i,p->pointY[i],index,iter->traffic[index]);
+                            //printf("pointY[%d]=%d  traffic[%d]=%d\n",i,p->pointY[i],index,iter->traffic[index]);
 
                             index=(index-1);
                             if(index<0){
@@ -298,9 +308,83 @@ void Widget::timerEvent(QTimerEvent *event)
     }
     else if(event->timerId()==timer2Handler)
     {
-        sniff80211 s;
+
+        this->fd=thread->fd;
+        //qDebug()<<"*********************"<<fd<<"********************";
+        int t=flag%12+1;
+        int freq=0;
+        /*char command[30]={'\0'};
+        sprintf(command,"sudo iwconfig wlan0 channel %d\0",t);
+        //qDebug()<<command;
+        system(command);
+        */
+        switch(t)
+        {
+            case 1:
+                freq=2412;
+            break;
+            case 2:
+                freq=2417;
+                break;
+            case 3:
+                freq=2422;
+                break;
+            case 4:
+                freq=2427;
+                break;
+            case 5:
+                freq=2432;
+                break;
+            case 6:
+                freq=2437;
+                break;
+            case 7:
+                freq=2442;
+                break;
+            case 8:
+                freq=2447;
+                break;
+            case 9:
+                freq=2452;
+                break;
+            case 10:
+                freq=2457;
+                break;
+            case 11:
+                freq=2462;
+                break;
+            case 12:
+                freq=2467;
+                break;
+            case 13:
+                freq=2472;
+                break;
+            default:
+                qDebug()<<"channel value error";
+                break;
+        }
+        struct iwreq iwreq;
+        memset(&iwreq,0,sizeof(iwreq));
+        strncpy(iwreq.ifr_ifrn.ifrn_name,"wlan0\0",IF_NAMESIZE-1);
+        if(ioctl(fd,SIOCGIWFREQ,&iwreq)==-1)
+        {
+            qDebug()<<"freq get failed";
+            return;
+        }
+        iwreq.u.freq.m=freq*100000;
+        iwreq.u.freq.e=1;
+        iwreq.u.freq.i=0;
+        iwreq.u.freq.flags=0;
+        if(ioctl(fd,SIOCSIWFREQ,&iwreq)==-1)
+        {
+            qDebug()<<"channel set failed";
+            return;
+        }
+        //qDebug()<<"channel"<<t<<"set success";
+        flag++;
+        /*sniff80211 s;
         s.readWifiDataFromFile(this->wlist);
-        emit dealfiledata();
+        emit dealfiledata();*/
     }
 }
 void Widget::dealmacCommoBoxChanged()

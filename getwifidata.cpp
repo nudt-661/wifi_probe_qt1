@@ -23,7 +23,7 @@ getWifiData::getWifiData(QList<macList::mac_list> *mlist,QList<wifiList::wifi_li
 }
 void getWifiData::doChange()
 {
-    qDebug()<<"-------------------do change-----------------";
+    //qDebug()<<"-------------------do change-----------------";
     emit change();
 }
 
@@ -36,15 +36,16 @@ void getWifiData::run()
     dev[6] = 0;
     device d;
     d.set_promisc_mode(dev,true);
-    int fd;
+    //int fd;
     sniff80211 s;
     s.setFlag();
     connect(&s,&sniff80211::datachanged,this,&getWifiData::doChange);
 
     timerHandler = this->startTimer(200);
-    fd=d.init_socket(dev);
+    this->fd=d.init_socket(dev);
+    qDebug()<<this->fd;
     while(!flag)
-        s.recieve_packet(fd,(this->wlist),(this->mlist));
+        s.recieve_packet(this->fd,(this->wlist),(this->mlist));
 
     qDebug()<<"++++++++++++++++++++++++++++++++";
 }

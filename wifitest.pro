@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     radiotap.c \
     device.cpp \
     getwifidata.cpp \
-    getMacOrg.c
+    getMacOrg.c \
+    paintersubwidget.cpp
 
 HEADERS  += widget.h \
     wifilist.h \
@@ -42,7 +43,8 @@ HEADERS  += widget.h \
     radiotap.h \
     device.h \
     getwifidata.h \
-    getMacOrg.h
+    getMacOrg.h \
+    paintersubwidget.h
 
 FORMS    += widget.ui \
     widget.ui
