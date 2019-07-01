@@ -54,8 +54,6 @@ private:
     int timerHandler;
     int timer2Handler;
     int trafficindex;
-
-
 };
 
 #endif // WIDGET_H

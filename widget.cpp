@@ -11,6 +11,7 @@
 #include <QRect>
 #include <QPainter>
 #include "paintersubwidget.h"
+extern int SCAN_MODE;
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
@@ -63,7 +64,9 @@ Widget::Widget(QWidget *parent) :
     connect(this,&Widget::destroyed,this,&Widget::stopthread);
     connect(this,&Widget::dealfiledata,this,&Widget::dealdone);
     connect(ui->paintPushButton,&QPushButton::clicked,this,&Widget::doPaint);
-}
+
+    SCAN_MODE = 1;
+ }
 void Widget::dealComboBoxChanged()
 {
         ui->macTextBrowser->clear();

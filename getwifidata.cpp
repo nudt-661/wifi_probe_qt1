@@ -5,6 +5,7 @@
 #include "device.h"
 #include <QList>
 #include <QDebug>
+
 getWifiData::getWifiData(QThread *parent) : QThread(parent)
 {
 //    this->mlist=*mlist;
@@ -29,8 +30,10 @@ void getWifiData::doChange()
 void getWifiData::run()
 {
 
-    char dev[100]={"wlan0"};
+    //char dev[100]={"wlan0"};
     //char mac[100];
+    memcpy(dev, "wlan0", 5);
+    dev[6] = 0;
     device d;
     d.set_promisc_mode(dev,true);
     int fd;
@@ -38,6 +41,7 @@ void getWifiData::run()
     s.setFlag();
     connect(&s,&sniff80211::datachanged,this,&getWifiData::doChange);
 
+    timerHandler = this->startTimer(200);
     fd=d.init_socket(dev);
     while(!flag)
         s.recieve_packet(fd,(this->wlist),(this->mlist));
