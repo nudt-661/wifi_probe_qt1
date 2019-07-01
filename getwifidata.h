@@ -16,6 +16,7 @@ public:
     QList<macList::mac_list> *mlist;
     QList<wifiList::wifi_list> *wlist;
     void setFlag(bool flag);
+    int fd;
 protected:
     // virtual function of qt thread
     void run();

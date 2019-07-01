@@ -46,11 +46,12 @@ private:
 
     Ui::Widget *ui;
     getWifiData *thread;
-    QList<char*> *devmac;
-    char ap[20];
+    //QList<char*> *devmac;
+    //char ap[20];
     PainterSubWidget *p;
     int point[60];
-
+    int flag;
+    int fd;
     int timerHandler;
     int timer2Handler;
     int trafficindex;

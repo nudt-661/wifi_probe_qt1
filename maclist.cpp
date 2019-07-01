@@ -6,32 +6,35 @@ macList::macList(QWidget *parent) : QWidget(parent)
 }
 int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index)
 {
+    qDebug()<<"--------------------------";
     if(!mlist->isEmpty())
     {
+
         QList<macList::mac_list>::iterator iter = mlist->begin();
         int i=0;
         for(;iter != mlist->end();iter++)
         {
+            qDebug()<<"mlist"<<iter->devmac<<iter->ap<<"key"<<key<<"ap"<<ap;
             if(strcmp(iter->devmac,key)==0)
             {
-                if(strcmp(iter->ap,ap)==0)
+                qDebug()<<"find key !!!!!!!!!!!!!!!!!!!!!!!"<<key;
+                if(memcmp(iter->ap,ap,17)==0)
                 {
-                    //*traffic=100;
-                    traffic=iter->traffic;
+                    qDebug()<<"find ap !!!!!!!!!!!!!!!!!!!!!!!"<<ap;
+                    int j=0;
+                    for(j=0;j<TRAFFIC_NUM;j++)
+                    {
+                        traffic[j]=iter->traffic[j];
+                    }
                     *traffic_index=iter->index;
+
                     return i;
                 }
+                /*
                 else
                 {
-                    int j;
-                    for(j=0;j<60;j++)
-                    {
-                        iter->traffic[j]=0;
-
-                    }
-                    iter->index=0;
                     return -1;
-                }
+                }*/
             }
             i++;
         }
