@@ -598,3 +598,96 @@ void sniff80211::readWifiDataFromFile(QList<wifiList::wifi_list> *wlist){
 void sniff80211::setFlag(){
     this->flag=1;
 }
+
+
+
+int sniff80211:: 
+get_freq_radiotap(const char* radiotap_buf)
+{
+	struct ieee80211_radiotap_iterator iter;
+	uint32_t phy_freq = 0;
+	int err;
+	int i, j;
+
+	err = ieee80211_radiotap_iterator_init(&iter, 
+			(struct ieee80211_radiotap_header *)radiotap_buf, 1000, NULL);
+	if (err)
+	{
+		printf("not valid radiotap...\n");
+		return -1;
+	}
+	j = 0;
+
+	while (!(err = ieee80211_radiotap_iterator_next(&iter)))
+	{
+		if (iter.is_radiotap_ns)
+		{
+			switch (iter.this_arg_index)
+			{
+#define IEEE80211_CHAN_A \
+				(IEEE80211_CHAN_5GHZ | IEEE80211_CHAN_OFDM)
+#define IEEE80211_CHAN_G \
+				(IEEE80211_CHAN_2GHZ | IEEE80211_CHAN_OFDM)
+				case IEEE80211_RADIOTAP_CHANNEL:
+					phy_freq = le16toh(*(uint16_t*)iter.this_arg);
+					break;
+			}
+		}
+		j++;
+	}
+
+	return phy_freq;
+}
+
+
+int sniff80211::
+get_channel_radiotap(const char* radiatap_buf)
+{
+	int freq, channel;
+	freq = get_freq_radiotap(radiotap_buf);
+	switch (freq)
+	{
+		case 2412:
+			channel = 1;
+			break;
+		case 2417:
+			channel = 2;
+			break;
+		case 2422:
+			channel = 3;
+			break;
+		case 2427:
+			channel = 4;
+			break;
+		case 2432:
+			channel = 5;
+			break;
+		case 2437:
+			channel = 6;
+			break;
+		case 2442:
+			channel = 7;
+			break;
+		case 2447:
+			channel = 8;
+			break;
+		case 2452:
+			channel = 9;
+			break;
+		case 2457:
+			channel = 10;
+			break;
+		case 2462:
+			channel = 11;
+			break;
+		case 2467:
+			channel = 12;
+			break;
+		case 2472:
+			channel = 13;
+			break;
+		default:
+			channel = 0;
+	}
+	return channel;
+}
