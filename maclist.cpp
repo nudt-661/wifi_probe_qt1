@@ -4,9 +4,9 @@ macList::macList(QWidget *parent) : QWidget(parent)
 {
 
 }
-int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index)
+int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index,int *channel)
 {
-    qDebug()<<"--------------------------";
+    //qDebug()<<"--------------------------";
     if(!mlist->isEmpty())
     {
 
@@ -14,19 +14,20 @@ int macList::searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[2
         int i=0;
         for(;iter != mlist->end();iter++)
         {
-            qDebug()<<"mlist"<<iter->devmac<<iter->ap<<"key"<<key<<"ap"<<ap;
+            //qDebug()<<"mlist"<<iter->devmac<<iter->ap<<"key"<<key<<"ap"<<ap;
             if(strcmp(iter->devmac,key)==0)
             {
-                qDebug()<<"find key !!!!!!!!!!!!!!!!!!!!!!!"<<key;
+                //qDebug()<<"find key !!!!!!!!!!!!!!!!!!!!!!!"<<key;
                 if(memcmp(iter->ap,ap,17)==0)
                 {
-                    qDebug()<<"find ap !!!!!!!!!!!!!!!!!!!!!!!"<<ap;
+                    //qDebug()<<"find ap !!!!!!!!!!!!!!!!!!!!!!!"<<ap;
                     int j=0;
                     for(j=0;j<TRAFFIC_NUM;j++)
                     {
                         traffic[j]=iter->traffic[j];
                     }
                     *traffic_index=iter->index;
+                    *channel=iter->channel;
 
                     return i;
                 }

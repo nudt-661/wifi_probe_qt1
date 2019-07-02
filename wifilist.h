@@ -13,6 +13,7 @@ public:
     struct wifi_list{
         char ssid[100];
         char apMac[20];
+        //int channel;
     };
     bool searchKey(QList<wifiList::wifi_list> *wlist,char key[20]);
 signals:

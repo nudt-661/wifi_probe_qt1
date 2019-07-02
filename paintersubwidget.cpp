@@ -6,6 +6,7 @@
 #include<QRect>
 #include<QRect>
 #include<QScreen>
+extern int SCAN_MODE;
 PainterSubWidget::PainterSubWidget(QWidget *parent) : QWidget(parent)
 {
     int i=0;
@@ -51,6 +52,7 @@ void PainterSubWidget::setPaintWindowSize(int x, int y, int w, int h)
 }
 void PainterSubWidget::dealexit(){
     this->close();
+    SCAN_MODE=1;
 }
 void PainterSubWidget::paintNewPoint(int y0,int y1,int index)
 {

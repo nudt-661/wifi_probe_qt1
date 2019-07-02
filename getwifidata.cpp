@@ -30,7 +30,7 @@ void getWifiData::doChange()
 void getWifiData::run()
 {
 
-    //char dev[100]={"wlan0"};
+    char dev[100]={'\0'};
     //char mac[100];
     memcpy(dev, "wlan0", 5);
     dev[6] = 0;

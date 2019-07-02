@@ -47,6 +47,7 @@ private:
     Ui::Widget *ui;
     getWifiData *thread;
     //QList<char*> *devmac;
+
     //char ap[20];
     PainterSubWidget *p;
     int point[60];

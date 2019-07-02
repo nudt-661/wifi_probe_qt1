@@ -10,17 +10,8 @@
 #include <QApplication>
 #include <QRect>
 #include <QPainter>
-#include <net/if.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <linux/if_ether.h>
-#include <linux/if_packet.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <linux/wireless.h>
 #include "paintersubwidget.h"
+#include "device.h"
 extern int SCAN_MODE;
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
@@ -50,7 +41,7 @@ Widget::Widget(QWidget *parent) :
     //ui->paintPushButton->setDisabled(true);
     this->timerHandler=0;
     this->timer2Handler=0;
-    timerHandler=this->startTimer(10000);
+    timerHandler=this->startTimer(3000);
     timer2Handler=this->startTimer(200);
     if(timerHandler==0||timer2Handler==0)
         return;
@@ -59,7 +50,7 @@ Widget::Widget(QWidget *parent) :
     this->mlist=new QList<macList::mac_list>;
     this->wlist=new QList<wifiList::wifi_list>;
     //this->devmac=new QList<char*> ;
-    //memset(this->ap,'\0',20);
+    //memset(this->ap,'\0',100);
     thread=new getWifiData(this->mlist,this->wlist);
     thread->start();
 
@@ -82,7 +73,7 @@ void Widget::dealComboBoxChanged()
         //ui->graphTextBrowser->clear();
         ui->macComboBox->clear();
         //this->devmac->clear();
-        //memset(this->ap,'\0',20);
+        //memset(this->ap,'\0',100);
         //ui->macComboBox->setCurrentIndex(0);
         ui->aptextBrowser->clear();
         if(!this->wlist->isEmpty())
@@ -98,7 +89,7 @@ void Widget::dealComboBoxChanged()
                     ui->aptextBrowser->clear();
                     ui->orgTextBrowser->clear();
                     ui->aptextBrowser->append(iter->apMac);
-                    //strcpy(this->ap,iter->apMac);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    //strcpy(this->ap,iter->ssid);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                     QList<macList::mac_list>::iterator maciter=mlist->begin();
                     for(;maciter!=mlist->end();maciter++)
                     {
@@ -153,7 +144,7 @@ void Widget::dealComboBoxChanged()
                     ui->orgTextBrowser->append((QString)org_name);
                     free(mac_prefix);
                     mac_prefix=NULL;
-                    break;
+                    //break;
                 }
             }
 
@@ -309,79 +300,21 @@ void Widget::timerEvent(QTimerEvent *event)
     else if(event->timerId()==timer2Handler)
     {
 
-        this->fd=thread->fd;
-        //qDebug()<<"*********************"<<fd<<"********************";
-        int t=flag%12+1;
-        int freq=0;
-        /*char command[30]={'\0'};
-        sprintf(command,"sudo iwconfig wlan0 channel %d\0",t);
-        //qDebug()<<command;
-        system(command);
-        */
-        switch(t)
+        if(SCAN_MODE==1)
         {
-            case 1:
-                freq=2412;
-            break;
-            case 2:
-                freq=2417;
-                break;
-            case 3:
-                freq=2422;
-                break;
-            case 4:
-                freq=2427;
-                break;
-            case 5:
-                freq=2432;
-                break;
-            case 6:
-                freq=2437;
-                break;
-            case 7:
-                freq=2442;
-                break;
-            case 8:
-                freq=2447;
-                break;
-            case 9:
-                freq=2452;
-                break;
-            case 10:
-                freq=2457;
-                break;
-            case 11:
-                freq=2462;
-                break;
-            case 12:
-                freq=2467;
-                break;
-            case 13:
-                freq=2472;
-                break;
-            default:
-                qDebug()<<"channel value error";
-                break;
+            this->fd=thread->fd;
+            //qDebug()<<"*********************"<<fd<<"********************";
+            int t=flag%12+1;
+            device d;
+            d.setChannel(this->fd,t);
+            /*char command[30]={'\0'};
+            sprintf(command,"sudo iwconfig wlan0 channel %d\0",t);
+            //qDebug()<<command;
+            system(command);
+            */
+            //qDebug()<<"channel"<<t<<"set success";
+            flag++;
         }
-        struct iwreq iwreq;
-        memset(&iwreq,0,sizeof(iwreq));
-        strncpy(iwreq.ifr_ifrn.ifrn_name,"wlan0\0",IF_NAMESIZE-1);
-        if(ioctl(fd,SIOCGIWFREQ,&iwreq)==-1)
-        {
-            qDebug()<<"freq get failed";
-            return;
-        }
-        iwreq.u.freq.m=freq*100000;
-        iwreq.u.freq.e=1;
-        iwreq.u.freq.i=0;
-        iwreq.u.freq.flags=0;
-        if(ioctl(fd,SIOCSIWFREQ,&iwreq)==-1)
-        {
-            qDebug()<<"channel set failed";
-            return;
-        }
-        //qDebug()<<"channel"<<t<<"set success";
-        flag++;
         /*sniff80211 s;
         s.readWifiDataFromFile(this->wlist);
         emit dealfiledata();*/
@@ -438,5 +371,25 @@ void Widget::doPaint(){
     p->setWindowTitle("流量曲线");
 
     p->show();
+    SCAN_MODE=0;
+    //this->killTimer(this->timer2Handler);
+    QString str=ui->macComboBox->currentText();
+    QList<macList::mac_list>::iterator iter = mlist->begin();
+    int channel=0;
+    for(;iter != mlist->end();iter++)
+    {
+        QString mac=(QString)iter->devmac;
+        if(str==mac)
+        {
+            channel=iter->channel;
+            break;
+        }
+    }
+    if(channel>0)
+    {
+        device d;
+        d.setChannel(this->fd,channel);
+    }
+
 
 }

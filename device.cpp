@@ -9,6 +9,7 @@
 #include <linux/if_packet.h>
 #include <string.h>
 #include <unistd.h>
+#include <linux/wireless.h>
 #include<QDebug>
 device::device()
 {
@@ -84,4 +85,71 @@ int device::get_hwinfo(char *eth,unsigned char *mac)
     memcpy(mac, ifr.ifr_hwaddr.sa_data, 6);
 
     return ifr.ifr_hwaddr.sa_family;
+}
+void device::setChannel(int fd, int channel)
+{
+    int freq=0;
+    switch(channel)
+    {
+        case 1:
+            freq=2412;
+        break;
+        case 2:
+            freq=2417;
+            break;
+        case 3:
+            freq=2422;
+            break;
+        case 4:
+            freq=2427;
+            break;
+        case 5:
+            freq=2432;
+            break;
+        case 6:
+            freq=2437;
+            break;
+        case 7:
+            freq=2442;
+            break;
+        case 8:
+            freq=2447;
+            break;
+        case 9:
+            freq=2452;
+            break;
+        case 10:
+            freq=2457;
+            break;
+        case 11:
+            freq=2462;
+            break;
+        case 12:
+            freq=2467;
+            break;
+        case 13:
+            freq=2472;
+            break;
+        default:
+            qDebug()<<"channel value error";
+            break;
+    }
+    struct iwreq iwreq;
+    memset(&iwreq,0,sizeof(iwreq));
+    strncpy(iwreq.ifr_ifrn.ifrn_name,"wlan0\0",IF_NAMESIZE-1);
+    if(ioctl(fd,SIOCGIWFREQ,&iwreq)==-1)
+    {
+        qDebug()<<"freq get failed";
+        return;
+    }
+    iwreq.u.freq.m=freq*100000;
+    iwreq.u.freq.e=1;
+    iwreq.u.freq.i=0;
+    iwreq.u.freq.flags=0;
+    if(ioctl(fd,SIOCSIWFREQ,&iwreq)==-1)
+    {
+        qDebug()<<"channel set failed";
+        return;
+    }
+    qDebug()<<"channel"<<channel<<"set";
 }

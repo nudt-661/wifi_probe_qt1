@@ -28,9 +28,10 @@ public:
         int traffic[TRAFFIC_NUM];
         //QString time[TRAFFIC_NUM];
         int index;
+        int channel;
         //trafficList macTraffic;
     };
-    int searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index);
+    int searchMacKey(QList<macList::mac_list> *mlist,char key[20],char ap[20],int *traffic,int *traffic_index,int *channel);
 signals:
 
 public slots:

@@ -58,9 +58,9 @@ public:
     void readWifiDataFromFile(QList<wifiList::wifi_list> *wlist);
     int parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> *wlist,QList<macList::mac_list> *mlist,int pktlen);
 
-		//根据网络包获取频率
+    //根据网络包获取频率
 	int get_freq_radiotap(const char* radiotap_buf);
-	int get_channel_radiotap(const char* radiatap_buf);
+    int get_channel_radiotap(const char* radiotap_buf);
 signals:
     void datachanged();
 
