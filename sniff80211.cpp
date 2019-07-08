@@ -202,7 +202,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
     {
         //qDebug()<<"stype"<<stype;
 
-        if(stype==0x00||stype==0x04)//data
+        if(stype>=0&&stype<8)//stype==0x00||stype==0x04)//data
         {
 
             if( toDS == 0 && fromDS == 0 )//ibss
@@ -234,6 +234,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -247,7 +248,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
             }
             else if( toDS == 1 && fromDS == 0 ) //to ap
             {
-                qDebug()<<"to ap";
+                //qDebug()<<"to ap";
                 bssid = wh->addr1;
                 ta = wh->addr2;
                 ra = wh->addr3;
@@ -272,6 +273,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -308,6 +310,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -346,6 +349,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -358,7 +362,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
 
             }
         }
-        else if(stype==0x0c||stype==0x08)
+        else if(stype>=0x08)//stype==0x0c||stype==0x08)
         {
             if( toDS == 0 && fromDS == 0 )//ibss
             {
@@ -387,6 +391,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -423,6 +428,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -460,6 +466,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {
@@ -497,6 +504,7 @@ int sniff80211::parse_packet_wlan(const char *buffer,QList<wifiList::wifi_list> 
                     tmp.index=0;
                     tmp.channel=this->get_channel_radiotap(buffer);
                     mlist->append(tmp);
+                    emit macupdate();
                 }
                 else
                 {

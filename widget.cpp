@@ -22,7 +22,7 @@ Widget::Widget(QWidget *parent) :
     QDesktopWidget* desktopWidget =QApplication::desktop();
     QRect deskRect = desktopWidget->availableGeometry();
     int x=deskRect.x();
-    int y=deskRect.y();
+    //int y=deskRect.y();
     int w=deskRect.width();
     int h=deskRect.height();
 
@@ -41,7 +41,7 @@ Widget::Widget(QWidget *parent) :
     //ui->paintPushButton->setDisabled(true);
     this->timerHandler=0;
     this->timer2Handler=0;
-    timerHandler=this->startTimer(3000);
+    timerHandler=this->startTimer(1000);
     timer2Handler=this->startTimer(200);
     if(timerHandler==0||timer2Handler==0)
         return;
@@ -50,7 +50,6 @@ Widget::Widget(QWidget *parent) :
     this->mlist=new QList<macList::mac_list>;
     this->wlist=new QList<wifiList::wifi_list>;
     //this->devmac=new QList<char*> ;
-    //memset(this->ap,'\0',100);
     thread=new getWifiData(this->mlist,this->wlist);
     thread->start();
 
@@ -61,6 +60,7 @@ Widget::Widget(QWidget *parent) :
     //connect(ui->pushButton,&QPushButton::clicked,this,&Widget::dealExit);
     //connect(ui->pushButton,&QPushButton::clicked,this,&Widget::destroy);
     connect(thread,&getWifiData::change,this,&Widget::dealdone);
+    connect(thread,&getWifiData::display,this,&Widget::doUpdateMacDisplay);
     connect(this,&Widget::destroyed,this,&Widget::stopthread);
     connect(this,&Widget::dealfiledata,this,&Widget::dealdone);
     connect(ui->paintPushButton,&QPushButton::clicked,this,&Widget::doPaint);
@@ -69,12 +69,9 @@ Widget::Widget(QWidget *parent) :
  }
 void Widget::dealComboBoxChanged()
 {
+        this->apmac.clear();
         ui->macTextBrowser->clear();
-        //ui->graphTextBrowser->clear();
         ui->macComboBox->clear();
-        //this->devmac->clear();
-        //memset(this->ap,'\0',100);
-        //ui->macComboBox->setCurrentIndex(0);
         ui->aptextBrowser->clear();
         if(!this->wlist->isEmpty())
         {
@@ -89,14 +86,14 @@ void Widget::dealComboBoxChanged()
                     ui->aptextBrowser->clear();
                     ui->orgTextBrowser->clear();
                     ui->aptextBrowser->append(iter->apMac);
-                    //strcpy(this->ap,iter->ssid);// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                    this->apmac.append((QString)iter->apMac);
                     QList<macList::mac_list>::iterator maciter=mlist->begin();
                     for(;maciter!=mlist->end();maciter++)
                     {
                         QString mname=(QString)maciter->ap;
-                        if(mname==iter->apMac)
+                        if((mname==(QString)iter->apMac)&&((QString)maciter->ap!=(QString)maciter->devmac))
                         {
-                            qDebug()<<maciter->devmac;
+                            //qDebug()<<maciter->devmac;
                             ui->macTextBrowser->append(maciter->devmac);
                             ui->macComboBox->addItem(maciter->devmac);
                             //this->devmac->append(maciter->devmac);
@@ -150,6 +147,50 @@ void Widget::dealComboBoxChanged()
 
         }
 //    }
+}
+void Widget::doUpdateMacDisplay()
+{
+    if(this->apmac.isEmpty())
+        return;
+    QList<QString>::iterator apiter=this->apmac.begin();
+    for(;apiter!=this->apmac.end();apiter++)
+    {
+        if(this->mlist->isEmpty())
+            return;
+        QList<macList::mac_list>::iterator maciter=mlist->begin();
+        for(;maciter!=mlist->end();maciter++)
+        {
+            QString mname=(QString)maciter->ap;
+            if((mname==(QString)apiter->data())&&((QString)maciter->ap!=(QString)maciter->devmac))
+            {
+                if(ui->macComboBox->findText(maciter->devmac)==-1)
+                {
+                    ui->macTextBrowser->append(maciter->devmac);
+                    ui->macComboBox->addItem(maciter->devmac);
+                    char *devmac_prefix=NULL;
+                    devmac_prefix=(char *)malloc(sizeof(char)*10);
+                    for(int i=0;i<8;i+=3)
+                    {
+                        devmac_prefix[i]=maciter->devmac[i];
+                        devmac_prefix[i+1]=maciter->devmac[i+1];
+                        if(i+2<6)
+                        {
+                            devmac_prefix[i+2]='-';
+                        }
+                    }
+                    devmac_prefix[8]='\0';
+                    char devorg_name[ORG_NAME_LEN]={'\0'};
+                    int re=searchOrg(devmac_prefix,devorg_name);
+                    ui->macTextBrowser->append((QString)devorg_name);
+                    if(re==0)
+                        ui->macTextBrowser->append(" ");
+                    free(devmac_prefix);
+                    devmac_prefix=NULL;
+                }
+            }
+
+        }
+    }
 }
 void Widget::dealdone()
 {

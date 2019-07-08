@@ -23,12 +23,14 @@ protected:
 
 signals:
     void change();
+    void display();
 
 public slots:
     void doChange();
+    void dodisplay();
 private:
     bool flag;
-    int timerHandler;
+    //int timerHandler;
     //int trafficIndex;
 
 };

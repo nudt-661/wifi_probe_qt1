@@ -26,7 +26,10 @@ void getWifiData::doChange()
     //qDebug()<<"-------------------do change-----------------";
     emit change();
 }
-
+void getWifiData::dodisplay()
+{
+    emit display();
+}
 void getWifiData::run()
 {
 
@@ -40,8 +43,8 @@ void getWifiData::run()
     sniff80211 s;
     s.setFlag();
     connect(&s,&sniff80211::datachanged,this,&getWifiData::doChange);
-
-    timerHandler = this->startTimer(200);
+    connect(&s,&sniff80211::macupdate,this,&getWifiData::dodisplay);
+    //timerHandler = this->startTimer(200);
     this->fd=d.init_socket(dev);
     qDebug()<<this->fd;
     while(!flag)

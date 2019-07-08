@@ -37,6 +37,7 @@ private slots:
     void dealComboBoxChanged();
     void dealmacCommoBoxChanged();
     void doPaint();
+    void doUpdateMacDisplay();
 signals:
     void dealfiledata();
 protected:
@@ -48,13 +49,14 @@ private:
     getWifiData *thread;
     //QList<char*> *devmac;
 
-    //char ap[20];
+    QList<QString> apmac;
     PainterSubWidget *p;
     int point[60];
     int flag;
     int fd;
     int timerHandler;
     int timer2Handler;
+
     int trafficindex;
 };
 

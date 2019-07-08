@@ -63,7 +63,7 @@ public:
     int get_channel_radiotap(const char* radiotap_buf);
 signals:
     void datachanged();
-
+    void macupdate();
 public slots:
 private:
     int flag;

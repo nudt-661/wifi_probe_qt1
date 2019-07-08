@@ -151,5 +151,5 @@ void device::setChannel(int fd, int channel)
         qDebug()<<"channel set failed";
         return;
     }
-    qDebug()<<"channel"<<channel<<"set";
+    //qDebug()<<"channel"<<channel<<"set";
 }
