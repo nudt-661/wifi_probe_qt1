@@ -818,12 +818,33 @@ get_channel_radiotap(const char* radiotap_buf)
 		case 2462:
 			channel = 11;
 			break;
-		case 2467:
+        case 5180://2467:
 			channel = 12;
 			break;
-		case 2472:
+        case 5200://2472:
 			channel = 13;
 			break;
+        case 5220:
+            channel = 14;
+            break;
+        case 5240:
+            channel = 15;
+            break;
+        case 5745:
+            channel = 16;
+            break;
+        case 5765:
+            channel = 17;
+            break;
+        case 5785:
+            channel = 18;
+            break;
+        case 5805:
+            channel = 19;
+            break;
+        case 5825:
+            channel = 20;
+            break;
 		default:
 			channel = 0;
 	}
