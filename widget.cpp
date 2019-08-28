@@ -345,7 +345,7 @@ void Widget::timerEvent(QTimerEvent *event)
         {
             this->fd=thread->fd;
             //qDebug()<<"*********************"<<fd<<"********************";
-            int t=flag%12+1;
+            int t=flag%20+1;
             device d;
             d.setChannel(this->fd,t);
             /*char command[30]={'\0'};

@@ -5,6 +5,7 @@
 #include "device.h"
 #include <QList>
 #include <QDebug>
+extern char wlanName[100];
 
 getWifiData::getWifiData(QThread *parent) : QThread(parent)
 {
@@ -33,19 +34,22 @@ void getWifiData::dodisplay()
 void getWifiData::run()
 {
 
-    char dev[100]={'\0'};
+    //char dev[100]={'\0'};
     //char mac[100];
-    memcpy(dev, "wlan0", 5);
-    dev[6] = 0;
+    //memcpy(dev, "wlan1", 5);
+    //dev[6] = 0;
+    memset(wlanName,'\0',100);
     device d;
-    d.set_promisc_mode(dev,true);
+    d.getNetName(wlanName);
+    qDebug()<<wlanName;
+    d.set_promisc_mode(wlanName/*,true*/);
     //int fd;
     sniff80211 s;
     s.setFlag();
     connect(&s,&sniff80211::datachanged,this,&getWifiData::doChange);
     connect(&s,&sniff80211::macupdate,this,&getWifiData::dodisplay);
     //timerHandler = this->startTimer(200);
-    this->fd=d.init_socket(dev);
+    this->fd=d.init_socket(wlanName);
     qDebug()<<this->fd;
     while(!flag)
         s.recieve_packet(this->fd,(this->wlist),(this->mlist));

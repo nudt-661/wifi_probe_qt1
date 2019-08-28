@@ -7,6 +7,7 @@
 #include <QDebug>
 int SCAN_MODE;
 int FLOW_MODE;
+char wlanName[100];
 int main(int argc, char *argv[])
 {
 
